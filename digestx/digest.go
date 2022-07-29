@@ -1,4 +1,4 @@
-package digest
+package digestx
 
 import (
 	"hash"

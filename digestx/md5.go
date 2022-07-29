@@ -1,4 +1,4 @@
-package digest
+package digestx
 
 import (
 	"crypto/md5"
