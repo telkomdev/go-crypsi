@@ -6,3 +6,7 @@ Custom crypto utility that wraps the `crypto` Go module to make life easier
 ```shell
 $ go get github.com/telkomdev/go-crypsi
 ```
+
+### Todo
+
+- add more examples
