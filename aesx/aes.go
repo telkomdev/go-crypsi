@@ -11,7 +11,10 @@ import (
 )
 
 type (
-	AesAlg     string
+	// AesAlg the AES mode algorithm defined type
+	AesAlg string
+
+	// AesKeySize the AES key size defined type
 	AesKeySize int
 )
 
