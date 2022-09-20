@@ -16,14 +16,24 @@ type (
 )
 
 const (
+	// Aes128KeySize the key size for AES 128 bit encryption
 	Aes128KeySize AesKeySize = 16
+
+	// Aes192KeySize the key size for AES 192 bit encryption
 	Aes192KeySize AesKeySize = 24
+
+	// Aes256KeySize the key size for AES 256 bit encryption
 	Aes256KeySize AesKeySize = 32
 )
 
 const (
+	// AesCBC the AES CBC mode
 	AesCBC AesAlg = "cbc"
+
+	// AesCFB the AES CFB mode
 	AesCFB AesAlg = "cfb"
+
+	// AesGCM the AES GCM mode
 	AesGCM AesAlg = "gcm"
 )
 
