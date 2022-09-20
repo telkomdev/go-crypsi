@@ -9,7 +9,7 @@ Custom crypto utility that wraps the `crypto` Go module to make life easier
 - Generate RSA private and public key
 - Symmetric encryption with AES
 - Message authentication code with HMAC
-- Generate Hash with Commin DIGEST Algorithm
+- Generate Hash with Common DIGEST Algorithm
 
 ### Install
 ```shell
