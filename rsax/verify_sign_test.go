@@ -1,6 +1,7 @@
 package rsax
 
 import (
+	"os"
 	"testing"
 )
 
@@ -243,5 +244,192 @@ func TestVerifySignWithPSSSha512WithInvalidData(t *testing.T) {
 	err = VerifySignatureWithPSSSha512(key.PublicKey, signature, []byte("elloworld"))
 	if err == nil {
 		t.Error("error: VerifySignatureWithPSSSha512() should error with invalid data")
+	}
+}
+
+// from io.Reader
+
+func TestVerifySignWithPSSMd5IO(t *testing.T) {
+	key, err := generateRSAPairs()
+
+	if err != nil {
+		t.Error("error: generateRSAPairs() should succeed")
+	}
+
+	myFile, err := os.Open("./testdata/my_file.txt")
+	if err != nil {
+		t.Error("error: Open() should succeed")
+	}
+
+	defer func() { myFile.Close() }()
+
+	signature, err := SignWithPSSMd5IO(key.PrivateKey, myFile)
+	if err != nil {
+		t.Error("error: SignWithPSSMd5IO() should succeed")
+	}
+
+	if signature == nil {
+		t.Error("error: signature should not be nil")
+	}
+
+	// reopen the file
+	myFile2, err := os.Open("./testdata/my_file.txt")
+	if err != nil {
+		t.Error("error: Open() should succeed")
+	}
+
+	defer func() { myFile2.Close() }()
+
+	err = VerifySignatureWithPSSMd5IO(key.PublicKey, signature, myFile2)
+	if err != nil {
+		t.Error("error: VerifySignatureWithPSSMd5IO() should succeed with valid data")
+	}
+}
+
+func TestVerifySignWithPSSSha1IO(t *testing.T) {
+	key, err := generateRSAPairs()
+
+	if err != nil {
+		t.Error("error: generateRSAPairs() should succeed")
+	}
+
+	myFile, err := os.Open("./testdata/my_file.txt")
+	if err != nil {
+		t.Error("error: Open() should succeed")
+	}
+
+	defer func() { myFile.Close() }()
+
+	signature, err := SignWithPSSSha1IO(key.PrivateKey, myFile)
+	if err != nil {
+		t.Error("error: SignWithPSSSha1IO() should succeed")
+	}
+
+	if signature == nil {
+		t.Error("error: signature should not be nil")
+	}
+
+	// reopen the file
+	myFile2, err := os.Open("./testdata/my_file.txt")
+	if err != nil {
+		t.Error("error: Open() should succeed")
+	}
+
+	defer func() { myFile2.Close() }()
+
+	err = VerifySignatureWithPSSSha1IO(key.PublicKey, signature, myFile2)
+	if err != nil {
+		t.Error("error: VerifySignatureWithPSSSha1IO() should succeed with valid data")
+	}
+}
+
+func TestVerifySignWithPSSSha256IO(t *testing.T) {
+	key, err := generateRSAPairs()
+
+	if err != nil {
+		t.Error("error: generateRSAPairs() should succeed")
+	}
+
+	myFile, err := os.Open("./testdata/my_file.txt")
+	if err != nil {
+		t.Error("error: Open() should succeed")
+	}
+
+	defer func() { myFile.Close() }()
+
+	signature, err := SignWithPSSSha256IO(key.PrivateKey, myFile)
+	if err != nil {
+		t.Error("error: SignWithPSSSha256IO() should succeed")
+	}
+
+	if signature == nil {
+		t.Error("error: signature should not be nil")
+	}
+
+	// reopen the file
+	myFile2, err := os.Open("./testdata/my_file.txt")
+	if err != nil {
+		t.Error("error: Open() should succeed")
+	}
+
+	defer func() { myFile2.Close() }()
+
+	err = VerifySignatureWithPSSSha256IO(key.PublicKey, signature, myFile2)
+	if err != nil {
+		t.Error("error: VerifySignatureWithPSSSha256IO() should succeed with valid data")
+	}
+}
+
+func TestVerifySignWithPSSSha384IO(t *testing.T) {
+	key, err := generateRSAPairs()
+
+	if err != nil {
+		t.Error("error: generateRSAPairs() should succeed")
+	}
+
+	myFile, err := os.Open("./testdata/my_file.txt")
+	if err != nil {
+		t.Error("error: Open() should succeed")
+	}
+
+	defer func() { myFile.Close() }()
+
+	signature, err := SignWithPSSSha384IO(key.PrivateKey, myFile)
+	if err != nil {
+		t.Error("error: SignWithPSSSha384IO() should succeed")
+	}
+
+	if signature == nil {
+		t.Error("error: signature should not be nil")
+	}
+
+	// reopen the file
+	myFile2, err := os.Open("./testdata/my_file.txt")
+	if err != nil {
+		t.Error("error: Open() should succeed")
+	}
+
+	defer func() { myFile2.Close() }()
+
+	err = VerifySignatureWithPSSSha384IO(key.PublicKey, signature, myFile2)
+	if err != nil {
+		t.Error("error: VerifySignatureWithPSSSha384IO() should succeed with valid data")
+	}
+}
+
+func TestVerifySignWithPSSSha512IO(t *testing.T) {
+	key, err := generateRSAPairs()
+
+	if err != nil {
+		t.Error("error: generateRSAPairs() should succeed")
+	}
+
+	myFile, err := os.Open("./testdata/my_file.txt")
+	if err != nil {
+		t.Error("error: Open() should succeed")
+	}
+
+	defer func() { myFile.Close() }()
+
+	signature, err := SignWithPSSSha512IO(key.PrivateKey, myFile)
+	if err != nil {
+		t.Error("error: SignWithPSSSha512IO() should succeed")
+	}
+
+	if signature == nil {
+		t.Error("error: signature should not be nil")
+	}
+
+	// reopen the file
+	myFile2, err := os.Open("./testdata/my_file.txt")
+	if err != nil {
+		t.Error("error: Open() should succeed")
+	}
+
+	defer func() { myFile2.Close() }()
+
+	err = VerifySignatureWithPSSSha512IO(key.PublicKey, signature, myFile2)
+	if err != nil {
+		t.Error("error: VerifySignatureWithPSSSha512IO() should succeed with valid data")
 	}
 }
