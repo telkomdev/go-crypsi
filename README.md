@@ -3,6 +3,7 @@
 Custom crypto utility that wraps the `crypto` Go module to make life easier
 
 [![go-crypsi CI](https://github.com/telkomdev/go-crypsi/actions/workflows/ci.yml/badge.svg)](https://github.com/telkomdev/go-crypsi/actions/workflows/ci.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/telkomdev/go-crypsi.svg)](https://pkg.go.dev/github.com/telkomdev/go-crypsi)
 
 ### Features
 - Asymmetric encryption with RSA
