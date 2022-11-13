@@ -40,12 +40,6 @@ const (
 	AesGCM AesAlg = "gcm"
 )
 
-// AesData represent output from AES encryption
-type AesData struct {
-	CipherText string
-	Nonce      string
-}
-
 // PKCS5Padding PKCS5 padding utility
 func PKCS5Padding(plainText []byte) []byte {
 	padding := (aes.BlockSize - len(plainText)%aes.BlockSize)
@@ -60,13 +54,12 @@ func PKCS5UnPadding(src []byte) []byte {
 	return src[:(length - unpadding)]
 }
 
-func GenerateRandomIV(n int) ([]byte, error) {
-	b := make([]byte, n)
+func GenerateRandomIV(b []byte) error {
 	if _, err := io.ReadFull(rand.Reader, b); err != nil {
-		return nil, err
+		return err
 	}
 
-	return b, nil
+	return nil
 }
 
 func isValidKeySize(key []byte) bool {
@@ -80,7 +73,7 @@ func isValidKeySize(key []byte) bool {
 	return false
 }
 
-func encrypt(alg AesAlg, key []byte, plainData []byte) (*AesData, error) {
+func encrypt(alg AesAlg, key []byte, plainData []byte) ([]byte, error) {
 	if !isValidKeySize(key) {
 		return nil, errors.New("invalid key size")
 	}
@@ -89,11 +82,6 @@ func encrypt(alg AesAlg, key []byte, plainData []byte) (*AesData, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	var (
-		cipherTextBytes []byte
-		nonceBytes      []byte
-	)
 
 	switch alg {
 	case AesCBC:
@@ -101,62 +89,64 @@ func encrypt(alg AesAlg, key []byte, plainData []byte) (*AesData, error) {
 		// next whole block. For an example of such padding, see
 		// https://tools.ietf.org/html/rfc5246#section-6.2.3.2
 		plainDataPadded := PKCS5Padding(plainData)
-		cipherTextBytes = make([]byte, len(plainDataPadded))
+		cipherDataBytes := make([]byte, len(plainDataPadded)+block.BlockSize())
 
-		nonceBytes, err = GenerateRandomIV(block.BlockSize())
+		err = GenerateRandomIV(cipherDataBytes[:block.BlockSize()])
 		if err != nil {
 			return nil, err
 		}
 
-		mode := cipher.NewCBCEncrypter(block, nonceBytes)
-		mode.CryptBlocks(cipherTextBytes, plainDataPadded)
+		mode := cipher.NewCBCEncrypter(block, cipherDataBytes[:block.BlockSize()])
+		mode.CryptBlocks(cipherDataBytes[block.BlockSize():], plainDataPadded)
 
-		break
+		dst := make([]byte, hex.EncodedLen(len(cipherDataBytes)))
+		hex.Encode(dst, cipherDataBytes)
+		return dst, nil
 	case AesCFB:
-		cipherTextBytes = make([]byte, len(plainData))
+		cipherDataBytes := make([]byte, len(plainData)+block.BlockSize())
 
-		nonceBytes, err = GenerateRandomIV(block.BlockSize())
+		err = GenerateRandomIV(cipherDataBytes[:block.BlockSize()])
 		if err != nil {
 			return nil, err
 		}
 
-		stream := cipher.NewCFBEncrypter(block, nonceBytes)
-		stream.XORKeyStream(cipherTextBytes, plainData)
+		stream := cipher.NewCFBEncrypter(block, cipherDataBytes[:block.BlockSize()])
+		stream.XORKeyStream(cipherDataBytes[block.BlockSize():], plainData)
 
-		break
+		dst := make([]byte, hex.EncodedLen(len(cipherDataBytes)))
+		hex.Encode(dst, cipherDataBytes)
+		return dst, nil
 	case AesGCM:
 		aesGCM, err := cipher.NewGCM(block)
 		if err != nil {
 			return nil, err
 		}
 
-		nonceBytes, err = GenerateRandomIV(aesGCM.NonceSize())
+		cipherDataBytes := make([]byte, len(plainData)+aesGCM.NonceSize())
+
+		err = GenerateRandomIV(cipherDataBytes[:aesGCM.NonceSize()])
 		if err != nil {
 			return nil, err
 		}
 
-		cipherTextBytes = aesGCM.Seal(nil, nonceBytes, plainData, nil)
+		res := aesGCM.Seal(nil, cipherDataBytes[:aesGCM.NonceSize()], plainData, nil)
+		cipherDataBytes = append(cipherDataBytes[:aesGCM.NonceSize()], res...)
 
-		break
+		dst := make([]byte, hex.EncodedLen(len(cipherDataBytes)))
+		hex.Encode(dst, cipherDataBytes)
+		return dst, nil
 	}
 
-	return &AesData{
-		CipherText: hex.EncodeToString(cipherTextBytes),
-		Nonce:      hex.EncodeToString(nonceBytes),
-	}, nil
+	return nil, errors.New("encrypt process failed")
 }
 
-func decrypt(alg AesAlg, key []byte, encryptedData *AesData) ([]byte, error) {
+func decrypt(alg AesAlg, key []byte, encryptedData []byte) ([]byte, error) {
 	if !isValidKeySize(key) {
 		return nil, errors.New("invalid key size")
 	}
 
-	cipherTextBytes, err := hex.DecodeString(encryptedData.CipherText)
-	if err != nil {
-		return nil, err
-	}
-
-	nonceBytes, err := hex.DecodeString(encryptedData.Nonce)
+	encryptedDataOut := make([]byte, hex.DecodedLen(len(encryptedData)))
+	encryptedDataOutN, err := hex.Decode(encryptedDataOut, encryptedData)
 	if err != nil {
 		return nil, err
 	}
@@ -166,37 +156,38 @@ func decrypt(alg AesAlg, key []byte, encryptedData *AesData) ([]byte, error) {
 		return nil, err
 	}
 
-	var (
-		plainDataBytes []byte
-	)
-
 	switch alg {
 	case AesCBC:
+		cipherDataBytes := encryptedDataOut[:encryptedDataOutN][aes.BlockSize:]
+		nonceBytes := encryptedDataOut[:encryptedDataOutN][:aes.BlockSize]
+
 		mode := cipher.NewCBCDecrypter(block, nonceBytes)
-		mode.CryptBlocks(cipherTextBytes, cipherTextBytes)
+		mode.CryptBlocks(cipherDataBytes, cipherDataBytes)
 
-		plainDataBytes = PKCS5UnPadding(cipherTextBytes)
-
-		break
+		return PKCS5UnPadding(cipherDataBytes), nil
 	case AesCFB:
-		stream := cipher.NewCFBDecrypter(block, nonceBytes)
-		stream.XORKeyStream(cipherTextBytes, cipherTextBytes)
-		plainDataBytes = cipherTextBytes
+		cipherDataBytes := encryptedDataOut[:encryptedDataOutN][aes.BlockSize:]
+		nonceBytes := encryptedDataOut[:encryptedDataOutN][:aes.BlockSize]
 
-		break
+		stream := cipher.NewCFBDecrypter(block, nonceBytes)
+		stream.XORKeyStream(cipherDataBytes, cipherDataBytes)
+		return cipherDataBytes, nil
 	case AesGCM:
 		aesGCM, err := cipher.NewGCM(block)
 		if err != nil {
 			return nil, err
 		}
 
-		plainDataBytes, err = aesGCM.Open(nil, nonceBytes, cipherTextBytes, nil)
+		cipherDataBytes := encryptedDataOut[:encryptedDataOutN][aesGCM.NonceSize():]
+		nonceBytes := encryptedDataOut[:encryptedDataOutN][:aesGCM.NonceSize()]
+
+		plainDataBytes, err := aesGCM.Open(nil, nonceBytes, cipherDataBytes, nil)
 		if err != nil {
 			return nil, err
 		}
 
-		break
+		return plainDataBytes, nil
 	}
 
-	return plainDataBytes, nil
+	return nil, errors.New("decrypt process failed")
 }

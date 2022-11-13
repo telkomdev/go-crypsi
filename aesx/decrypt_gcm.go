@@ -5,7 +5,7 @@ import (
 )
 
 // DecryptWithAES128GCM will decrypt data with 128 bit key and with GCM mode
-func DecryptWithAES128GCM(key []byte, encryptedData *AesData) ([]byte, error) {
+func DecryptWithAES128GCM(key []byte, encryptedData []byte) ([]byte, error) {
 	if len(key) != int(Aes128KeySize) {
 		return nil, errors.New("aes 128 must have 16 bytes key size")
 	}
@@ -14,7 +14,7 @@ func DecryptWithAES128GCM(key []byte, encryptedData *AesData) ([]byte, error) {
 }
 
 // DecryptWithAES192GCM will decrypt data with 192 bit key and with GCM mode
-func DecryptWithAES192GCM(key []byte, encryptedData *AesData) ([]byte, error) {
+func DecryptWithAES192GCM(key []byte, encryptedData []byte) ([]byte, error) {
 	if len(key) != int(Aes192KeySize) {
 		return nil, errors.New("aes 192 must have 24 bytes key size")
 	}
@@ -23,7 +23,7 @@ func DecryptWithAES192GCM(key []byte, encryptedData *AesData) ([]byte, error) {
 }
 
 // DecryptWithAES256GCM will decrypt data with 256 bit key and with GCM mode
-func DecryptWithAES256GCM(key []byte, encryptedData *AesData) ([]byte, error) {
+func DecryptWithAES256GCM(key []byte, encryptedData []byte) ([]byte, error) {
 	if len(key) != int(Aes256KeySize) {
 		return nil, errors.New("aes 256 must have 32 bytes key size")
 	}
