@@ -17,6 +17,7 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Println(aesData)
+	fmt.Println(string(aesData))
 
 	plainDataDecrypted, err := aesx.DecryptWithAES128GCM(key, aesData)
 	if err != nil {
