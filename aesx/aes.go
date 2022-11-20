@@ -48,10 +48,14 @@ func PKCS5Padding(plainText []byte) []byte {
 }
 
 // PKCS5UnPadding PKCS5 unpadding utility
-func PKCS5UnPadding(src []byte) []byte {
+func PKCS5UnPadding(src []byte) ([]byte, error) {
 	length := len(src)
 	unpadding := int(src[length-1])
-	return src[:(length - unpadding)]
+	unpadding = length - unpadding
+	if unpadding <= 0 {
+		return nil, errors.New("invalid encrypted data or key")
+	}
+	return src[:unpadding], nil
 }
 
 func GenerateRandomIV(b []byte) error {
@@ -89,15 +93,15 @@ func encrypt(alg AesAlg, key []byte, plainData []byte) ([]byte, error) {
 		// next whole block. For an example of such padding, see
 		// https://tools.ietf.org/html/rfc5246#section-6.2.3.2
 		plainDataPadded := PKCS5Padding(plainData)
-		cipherDataBytes := make([]byte, len(plainDataPadded)+block.BlockSize())
+		cipherDataBytes := make([]byte, len(plainDataPadded)+aes.BlockSize)
 
-		err = GenerateRandomIV(cipherDataBytes[:block.BlockSize()])
+		err = GenerateRandomIV(cipherDataBytes[:aes.BlockSize])
 		if err != nil {
 			return nil, err
 		}
 
-		mode := cipher.NewCBCEncrypter(block, cipherDataBytes[:block.BlockSize()])
-		mode.CryptBlocks(cipherDataBytes[block.BlockSize():], plainDataPadded)
+		mode := cipher.NewCBCEncrypter(block, cipherDataBytes[:aes.BlockSize])
+		mode.CryptBlocks(cipherDataBytes[aes.BlockSize:], plainDataPadded)
 
 		dst := make([]byte, hex.EncodedLen(len(cipherDataBytes)))
 		hex.Encode(dst, cipherDataBytes)
@@ -158,13 +162,25 @@ func decrypt(alg AesAlg, key []byte, encryptedData []byte) ([]byte, error) {
 
 	switch alg {
 	case AesCBC:
+		if len(encryptedDataOut) < aes.BlockSize {
+			return nil, errors.New("encrypted data too short")
+		}
+
 		cipherDataBytes := encryptedDataOut[:encryptedDataOutN][aes.BlockSize:]
+		if len(cipherDataBytes)%aes.BlockSize != 0 {
+			return nil, errors.New("invalid padding: encrypted data is not a multiple of the block size")
+		}
+
 		nonceBytes := encryptedDataOut[:encryptedDataOutN][:aes.BlockSize]
 
 		mode := cipher.NewCBCDecrypter(block, nonceBytes)
 		mode.CryptBlocks(cipherDataBytes, cipherDataBytes)
 
-		return PKCS5UnPadding(cipherDataBytes), nil
+		cipherDataBytes, err = PKCS5UnPadding(cipherDataBytes)
+		if err != nil {
+			return nil, errors.New("invalid encrypted data or key")
+		}
+		return cipherDataBytes, nil
 	case AesCFB:
 		cipherDataBytes := encryptedDataOut[:encryptedDataOutN][aes.BlockSize:]
 		nonceBytes := encryptedDataOut[:encryptedDataOutN][:aes.BlockSize]
