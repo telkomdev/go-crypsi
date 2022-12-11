@@ -23,7 +23,8 @@ func signWithPSS(privateKey *rsa.PrivateKey,
 
 	msgHashSum := d.Sum(nil)
 
-	signature, err := rsa.SignPSS(rand.Reader, privateKey, h, msgHashSum, nil)
+	signature, err := rsa.SignPSS(rand.Reader,
+		privateKey, h, msgHashSum, &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthEqualsHash})
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +42,8 @@ func signWithPSSIO(privateKey *rsa.PrivateKey,
 
 	msgHashSum := d.Sum(nil)
 
-	signature, err := rsa.SignPSS(rand.Reader, privateKey, h, msgHashSum, nil)
+	signature, err := rsa.SignPSS(rand.Reader,
+		privateKey, h, msgHashSum, &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthEqualsHash})
 	if err != nil {
 		return nil, err
 	}

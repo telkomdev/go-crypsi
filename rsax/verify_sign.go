@@ -22,7 +22,8 @@ func verifySignatureWithPSS(publicKey *rsa.PublicKey,
 
 	msgHashSum := d.Sum(nil)
 
-	return rsa.VerifyPSS(publicKey, h, msgHashSum, signature, nil)
+	return rsa.VerifyPSS(publicKey, h,
+		msgHashSum, signature, &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthEqualsHash})
 }
 
 func verifySignatureWithPSSIO(publicKey *rsa.PublicKey,
@@ -35,7 +36,8 @@ func verifySignatureWithPSSIO(publicKey *rsa.PublicKey,
 
 	msgHashSum := d.Sum(nil)
 
-	return rsa.VerifyPSS(publicKey, h, msgHashSum, signature, nil)
+	return rsa.VerifyPSS(publicKey, h,
+		msgHashSum, signature, &rsa.PSSOptions{SaltLength: rsa.PSSSaltLengthEqualsHash})
 }
 
 // VerifySignatureWithPSSMd5 will verify signature data with RSA PSS and MD5
