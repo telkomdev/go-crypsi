@@ -207,3 +207,45 @@ func decrypt(alg AesAlg, key []byte, encryptedData []byte) ([]byte, error) {
 
 	return nil, errors.New("decrypt process failed")
 }
+
+func encryptIO(alg AesAlg, key []byte,
+	plainData io.Reader, encryptedData io.Writer) error {
+
+	plainDataBytes, err := io.ReadAll(plainData)
+	if err != nil {
+		return err
+	}
+
+	encryptedDataBytes, err := encrypt(alg, key, plainDataBytes)
+	if err != nil {
+		return err
+	}
+
+	_, err = encryptedData.Write(encryptedDataBytes)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func decryptIO(alg AesAlg, key []byte,
+	encryptedData io.Reader, plainData io.Writer) error {
+
+	encryptedDataBytes, err := io.ReadAll(encryptedData)
+	if err != nil {
+		return err
+	}
+
+	plainDataBytes, err := decrypt(alg, key, encryptedDataBytes)
+	if err != nil {
+		return err
+	}
+
+	_, err = plainData.Write(plainDataBytes)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
