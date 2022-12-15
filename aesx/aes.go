@@ -52,7 +52,7 @@ func PKCS5UnPadding(src []byte) ([]byte, error) {
 	length := len(src)
 	unpadding := int(src[length-1])
 	unpadding = length - unpadding
-	if unpadding <= 0 {
+	if unpadding < 0 {
 		return nil, errors.New("invalid encrypted data or key")
 	}
 	return src[:unpadding], nil
