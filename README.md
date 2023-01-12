@@ -8,6 +8,8 @@ Custom crypto utility that wraps the `crypto` Go module to make life easier
 ### go-crypsi is compatible with each other with the following libraries
 - NodeJs https://github.com/telkomdev/crypsi
 - Python https://github.com/telkomdev/pycrypsi
+- C# (.NET) https://github.com/telkomdev/NetCrypsi
+- Javascript (React and Browser) https://github.com/telkomdev/crypsi.js
 
 ### Features
 - Asymmetric encryption with RSA
